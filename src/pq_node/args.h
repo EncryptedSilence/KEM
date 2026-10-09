@@ -6,6 +6,7 @@ typedef struct {
   const char *profile;     /* "baseline" | "pq"              */
   const char *mode;        /* "single" | "bench-net"         */
   const char *peer;        /* client: server IP (numeric)    */
+  const char *bind;        /* server: listen IP (numeric)    */
   int port;
   int count;               /* measured connections           */
   int warmup;              /* warm-up connections            */
