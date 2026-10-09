@@ -37,7 +37,8 @@ add_library(common STATIC
   src/common/csv.c
   src/common/version.c
   src/common/tlsctx.c
-  src/common/confirm.c)
+  src/common/confirm.c
+  src/common/kem.c)
 target_include_directories(common PUBLIC src/common)
 target_link_libraries(common PUBLIC OpenSSL::SSL OpenSSL::Crypto Threads::Threads ${CMAKE_DL_LIBS})
 
