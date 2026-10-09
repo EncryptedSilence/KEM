@@ -20,6 +20,8 @@
 #include <string.h>
 #include <strings.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <sys/time.h>
 
 typedef struct {
   uint64_t handshake_ns;
@@ -81,6 +83,13 @@ static int check_params(SSL *s, const char *profile, ConnResult *r) {
  * Returns 0 on success; negative on failure (handshake/params/confirm). */
 static int handle_conn(SSL_CTX *ctx, int fd, int is_server, const Args *a, ConnResult *r) {
   memset(r, 0, sizeof(*r));
+  /* Bound every socket read/write so a stalled peer cannot hang the handshake
+   * (also what makes the timeout negative test deterministic). */
+  if (a->timeout_ms > 0) {
+    struct timeval tv = { a->timeout_ms / 1000, (a->timeout_ms % 1000) * 1000 };
+    setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    setsockopt(fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+  }
   SSL *ssl = SSL_new(ctx);
   if (!ssl) { close(fd); return -1; }
   SSL_set_fd(ssl, fd);
@@ -186,6 +195,7 @@ int main(int argc, char **argv) {
     int fd = tcp_connect(a.peer, a.port, a.timeout_ms);
     if (fd < 0) { fprintf(stderr, "connect %s:%d failed\n", a.peer, a.port); SSL_CTX_free(ctx); return 1; }
     if (a.drop_after_tcp) { close(fd); fprintf(stderr, "client dropped after TCP (negative test)\n"); SSL_CTX_free(ctx); return 0; }
+    if (a.stall_ms > 0) { usleep((useconds_t)a.stall_ms * 1000); close(fd); fprintf(stderr, "client stalled %dms then closed (negative test)\n", a.stall_ms); SSL_CTX_free(ctx); return 0; }
     ConnResult r;
     int cr = handle_conn(ctx, fd, 0, &a, &r);
     if (cr == 0) { print_result(0, &a, &r); } else { fprintf(stderr, "client connection failed rc=%d\n", cr); rc = 1; }

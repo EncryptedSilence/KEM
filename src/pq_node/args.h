@@ -17,6 +17,7 @@ typedef struct {
   const char *expect_host; /* identity to verify in peer cert*/
   int corrupt_confirm;     /* negative test: tamper tag      */
   int drop_after_tcp;      /* negative test: close pre-TLS   */
+  int stall_ms;            /* negative test: connect, hold, close (no TLS) */
   int timeout_ms;          /* per-connection I/O timeout     */
 } Args;
 

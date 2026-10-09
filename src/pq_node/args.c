@@ -48,6 +48,7 @@ int parse_args(int argc, char **argv, Args *o) {
     else if (!strcmp(a, "--timeout-ms")) o->timeout_ms = atoi(NEXT() ?: "0");
     else if (!strcmp(a, "--corrupt-confirm")) o->corrupt_confirm = 1;
     else if (!strcmp(a, "--drop-after-tcp")) o->drop_after_tcp = 1;
+    else if (!strcmp(a, "--stall-ms")) o->stall_ms = atoi(NEXT() ?: "0");
     else if (!strcmp(a, "-h") || !strcmp(a, "--help")) { usage(argv[0]); return 2; }
     else { fprintf(stderr, "unknown arg: %s\n", a); usage(argv[0]); return 1; }
     #undef NEXT
