@@ -1,0 +1,2 @@
+bench client done: ok=1100 err=0 timeout=0 (warmup=100 count=1000)
+BENCH_SUMMARY role=client profile=pq ok=1100 err=0 timeout=0 peak_rss_kb=6144

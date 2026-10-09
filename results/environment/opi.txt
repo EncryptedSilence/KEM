@@ -1,0 +1,46 @@
+# Environment: opi  (2026-10-09T14:49:30Z)
+## uname
+Linux orangepi-r1 6.18.35-current-sunxi #1 SMP Tue Jun  9 10:28:53 UTC 2026 armv7l GNU/Linux
+arch=armv7l LONG_BIT=32
+## os-release
+PRETTY_NAME="Armbian 26.8.0-trunk.187 trixie"
+VERSION_ID="13"
+VERSION="13 (trixie)"
+VERSION_CODENAME=trixie
+DEBIAN_VERSION_FULL=13.5
+ARMBIAN_PRETTY_NAME="Armbian 26.8.0-trunk.187 trixie"
+## cpu
+CPU part	: 0xc07
+Features	: half thumb fastmult vfp edsp neon vfpv3 tls vfpv4 idiva idivt vfpd32 lpae evtstrm 
+Hardware	: Allwinner sun8i Family
+model name	: ARMv7 Processor rev 5 (v7l)
+processor	: 0
+processor	: 1
+processor	: 2
+processor	: 3
+ncpu=4
+## memory
+               total        used        free      shared  buff/cache   available
+Mem:           484Mi        77Mi       244Mi       2.5Mi       175Mi       406Mi
+Swap:          242Mi          0B       242Mi
+--- swaps ---
+Filename				Type		Size		Used		Priority
+/dev/zram0                              partition	248064		0		5
+## disk
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/mmcblk0p1   15G  2.8G   12G  20% /
+## compiler
+gcc (Debian 14.2.0-19) 14.2.0
+arm-linux-gnueabihf-gcc: arm-linux-gnueabihf-gcc (Debian 14.2.0-19) 14.2.0
+## openssl (system)
+OpenSSL 3.5.6 7 Apr 2026 (Library: OpenSSL 3.5.6 7 Apr 2026)
+built on: Sat Jun  6 19:55:35 2026 UTC
+## openssl (pinned, if present)
+pinned not present on this node
+## network
+lo               UNKNOWN        127.0.0.1/8 ::1/128 
+end0             DOWN           
+enxc0742bff95f8  UP             192.168.0.50/24 10.42.0.2/24 fe80::c274:2bff:feff:95f8/64 
+wlan0            UP             192.168.8.94/24 metric 600 fdc2:2018:8d44:9000:62fb:ff:fe24:2e04/64 2a03:32c0:3010:4a24:62fb:ff:fe24:2e04/64 fe80::62fb:ff:fe24:2e04/64 
+wlan1            DOWN           
+wg0              UNKNOWN        10.0.0.5/32 

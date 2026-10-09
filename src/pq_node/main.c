@@ -98,14 +98,16 @@ static int handle_conn(SSL_CTX *ctx, int fd, int is_server, const Args *a, ConnR
   uint64_t h0 = mono_ns();
   int hs = is_server ? SSL_accept(ssl) : SSL_connect(ssl);
   uint64_t h1 = mono_ns();
-  if (hs != 1) { SSL_free(ssl); return -2; }
+  /* SSL_set_fd uses BIO_NOCLOSE, so SSL_free never closes the socket — we own
+   * fd and must close it on every path, or we leak one fd per connection. */
+  if (hs != 1) { SSL_free(ssl); close(fd); return -2; }
   r->handshake_ns = h1 - h0;
 
   /* Handshake byte counts at the socket BIO (TLS-record level). */
   r->bytes_in = (long)BIO_number_read(SSL_get_rbio(ssl));
   r->bytes_out = (long)BIO_number_written(SSL_get_wbio(ssl));
 
-  if (check_params(ssl, a->profile, r) != 0) { SSL_free(ssl); return -3; }
+  if (check_params(ssl, a->profile, r) != 0) { SSL_free(ssl); close(fd); return -3; }
 
   unsigned char id[PQC_ID_LEN], key[PQC_KEY_LEN], tag_peer[32], tag_self[32];
   char data[4];
@@ -139,10 +141,12 @@ static int handle_conn(SSL_CTX *ctx, int fd, int is_server, const Args *a, ConnR
   r->ok = 1;
   SSL_shutdown(ssl);
   SSL_free(ssl);
+  close(fd);
   return 0;
 
 cfail:
   SSL_free(ssl);
+  close(fd);
   return -4;
 }
 
@@ -222,6 +226,7 @@ static int run_bench_net(SSL_CTX *ctx, const Args *a, int is_server) {
   }
 
   long ok = 0, err = 0, tmo = 0;
+  int consec_timeouts = 0;
   int lfd = -1;
   if (is_server) {
     lfd = tcp_listen(a->bind, a->port);
@@ -237,13 +242,20 @@ static int run_bench_net(SSL_CTX *ctx, const Args *a, int is_server) {
     int fd;
 
     if (is_server) {
-      fd = tcp_accept(lfd, a->timeout_ms > 0 ? a->timeout_ms * 4 : 20000);
+      /* Tolerate transient idle: keep listening across short gaps so a single
+       * slow/failed connection cannot make the server exit mid-run and refuse
+       * all the client's remaining connects. Conclude the client is done only
+       * after several consecutive idle windows. */
+      fd = tcp_accept(lfd, 5000);
       if (fd < 0) {
-        tmo++;
-        if (csv) csv_row(csv, "%ld,%d,0,0,0,0,0,0,%ld,-,-,-,-,timeout", i, phase, peak_rss_kb());
-        fprintf(stderr, "accept timeout at conn %ld — stopping\n", i);
-        break;
+        if (++consec_timeouts >= 4) {
+          fprintf(stderr, "client idle — server stopping at conn %ld\n", i);
+          break;
+        }
+        i--;              /* this slot was not a real connection; retry it */
+        continue;
       }
+      consec_timeouts = 0;
     } else {
       uint64_t t0 = mono_ns();
       fd = tcp_connect(a->peer, a->port, a->timeout_ms);

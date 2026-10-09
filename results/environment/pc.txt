@@ -1,0 +1,69 @@
+# Environment: pc  (2026-10-09T14:49:26Z)
+## uname
+Linux DESKTOP-4M9A8IQ 6.6.87.2-microsoft-standard-WSL2 #1 SMP PREEMPT_DYNAMIC Thu Jun  5 18:30:46 UTC 2025 x86_64 GNU/Linux
+arch=x86_64 LONG_BIT=64
+## os-release
+PRETTY_NAME="Ubuntu 26.04 LTS"
+VERSION_ID="26.04"
+VERSION="26.04 (Resolute Raccoon)"
+VERSION_CODENAME=resolute
+## cpu
+model name	: Intel(R) Core(TM) i9-14900HX
+processor	: 0
+processor	: 1
+processor	: 10
+processor	: 11
+processor	: 12
+processor	: 13
+processor	: 14
+processor	: 15
+processor	: 16
+processor	: 17
+processor	: 18
+processor	: 19
+processor	: 2
+processor	: 20
+processor	: 21
+processor	: 22
+processor	: 23
+processor	: 24
+processor	: 25
+processor	: 26
+processor	: 27
+processor	: 28
+processor	: 29
+processor	: 3
+processor	: 30
+processor	: 31
+processor	: 4
+processor	: 5
+processor	: 6
+processor	: 7
+processor	: 8
+processor	: 9
+ncpu=32
+## memory
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       875Mi        14Gi       3.6Mi       488Mi        14Gi
+Swap:          4.0Gi          0B       4.0Gi
+--- swaps ---
+Filename				Type		Size		Used		Priority
+/dev/sdc                                partition	4194304		0		-2
+## disk
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sdd       1007G   28G  929G   3% /
+## compiler
+gcc (Ubuntu 15.2.0-16ubuntu1) 15.2.0
+arm-linux-gnueabihf-gcc: n/a
+## openssl (system)
+OpenSSL 3.5.5 27 Jan 2026 (Library: OpenSSL 3.5.5 27 Jan 2026)
+built on: Wed Sep 30 18:46:30 2026 UTC
+## openssl (pinned, if present)
+OpenSSL 3.5.9 29 Sep 2026 (Library: OpenSSL 3.5.9 29 Sep 2026)
+## network
+lo               UNKNOWN        127.0.0.1/8 10.255.255.254/32 ::1/128 
+loopback0        UP             
+eth0             UP             10.42.0.1/24 fe80::d862:5017:b6f:8532/64 
+eth1             DOWN           
+eth2             UP             192.168.1.100/24 fdd0:d564:c517:0:aa51:e55c:229:7711/64 fdd0:d564:c517:0:414c:2fa0:6ead:d8f/128 fe80::d01d:c3f2:bf3d:6601/64 
+eth3             DOWN           
