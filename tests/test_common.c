@@ -2,6 +2,8 @@
 #include "net.h"
 #include "timing.h"
 #include "csv.h"
+#include "version.h"
+#include "tlsctx.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -104,6 +106,32 @@ static void test_csv(void) {
   }
 }
 
+static void test_version(void) {
+  CHECK(openssl_version_has("3.5.9") == 1, "runtime OpenSSL is 3.5.9");
+  CHECK(openssl_version_has("9.9.9") == 0, "wrong version not matched");
+  CHECK(strstr(openssl_runtime_version(), "3.5.9") != NULL,
+        "runtime version string contains 3.5.9");
+  /* If assert_openssl_version(3.5.9) wrongly exited, we'd never return here. */
+  assert_openssl_version("3.5.9");
+  CHECK(1, "assert_openssl_version(3.5.9) does not abort");
+}
+
+static void test_profile_group(void) {
+  CHECK(profile_group("baseline") && strcmp(profile_group("baseline"), "X25519") == 0,
+        "profile baseline -> X25519");
+  CHECK(profile_group("pq") && strcmp(profile_group("pq"), "X25519MLKEM768") == 0,
+        "profile pq -> X25519MLKEM768");
+  CHECK(profile_group("nonsense") == NULL, "unknown profile -> NULL");
+}
+
+static void test_make_ctx_rejects_bad_group(void) {
+  /* Group enforcement happens before cert loading, so a bad profile returns
+   * NULL regardless of cert paths. */
+  SSL_CTX *c = make_ctx(1, "nonsense", "none", "none", "none");
+  CHECK(c == NULL, "make_ctx rejects unknown profile");
+  if (c) SSL_CTX_free(c);
+}
+
 int main(void) {
   printf("== test_common ==\n");
   test_connect_rejects_nonnumeric();
@@ -112,6 +140,9 @@ int main(void) {
   test_mono_monotonic();
   test_cpu_and_rss();
   test_csv();
+  test_version();
+  test_profile_group();
+  test_make_ctx_rejects_bad_group();
   printf("%s (%d failures)\n", failures ? "FAILED" : "PASSED", failures);
   return failures ? 1 : 0;
 }
