@@ -6,8 +6,15 @@ set(CMAKE_SYSTEM_PROCESSOR arm)
 
 set(PQ_ARCH "armhf" CACHE STRING "target arch" FORCE)
 
-set(CMAKE_C_COMPILER   arm-linux-gnueabihf-gcc)
-set(CMAKE_CXX_COMPILER arm-linux-gnueabihf-g++)
+# Compiler prefix is configurable (Bootlin uses arm-buildroot-linux-gnueabihf-,
+# Debian/Ubuntu use arm-linux-gnueabihf-). Set PQ_CROSS_PREFIX in the env.
+if(DEFINED ENV{PQ_CROSS_PREFIX})
+  set(_pfx "$ENV{PQ_CROSS_PREFIX}")
+else()
+  set(_pfx "arm-linux-gnueabihf-")
+endif()
+set(CMAKE_C_COMPILER   "${_pfx}gcc")
+set(CMAKE_CXX_COMPILER "${_pfx}g++")
 
 # Find the pinned armhf OpenSSL under the project, not the host.
 get_filename_component(_repo "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)

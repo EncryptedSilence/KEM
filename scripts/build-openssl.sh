@@ -51,7 +51,7 @@ if [ "$ARCH" = "x86_64" ]; then
        --prefix="$PREFIX" --openssldir="$PREFIX/ssl" --libdir=lib)
   ./Configure linux-x86_64 "${CFG[@]}"
 else
-  export CROSS_COMPILE=arm-linux-gnueabihf-
+  export CROSS_COMPILE="${PQ_CROSS_PREFIX:-arm-linux-gnueabihf-}"
   ./Configure linux-armv4 no-shared no-dso no-tests no-docs threads \
       --prefix="$PREFIX" --openssldir="$PREFIX/ssl" --libdir=lib
 fi
