@@ -21,3 +21,5 @@
 # The sibling project is tracked separately; do not absorb it here
 /VPN_Orange-Qalqan/
 /VPN_Orange-Qalqan.zip
+/.superpowers/
+/.tools/
