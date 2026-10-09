@@ -1,0 +1,23 @@
+# Build output
+/build/
+/build-*/
+/install/
+# Pinned OpenSSL source tree + tarball (fetched & sha256-verified by script)
+/3rdparty/openssl/src/
+/3rdparty/openssl/*.tar.gz
+# Test CA / cert PRIVATE material — never commit (public certs may be committed if desired)
+/certs/**/*.key
+/certs/**/*.pem.key
+/certs/**/private/
+*.key
+!*.pub
+# Raw measurement outputs are large; keep them out of git by default
+/results/raw/
+# Editor / OS noise
+*.o
+*.obj
+*.swp
+.DS_Store
+# The sibling project is tracked separately; do not absorb it here
+/VPN_Orange-Qalqan/
+/VPN_Orange-Qalqan.zip
