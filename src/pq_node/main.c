@@ -195,9 +195,80 @@ int main(int argc, char **argv) {
   return rc;
 }
 
-/* bench-net implemented in Task 7 */
+/* bench-net: run warmup+count full connections, record per-connection metrics
+ * on this node's own monotonic clock. Each connection is fresh (no resumption).
+ * CSV columns include a phase flag (0=warmup, 1=measured) for the analyzer. */
+#define ULL(x) ((unsigned long long)(x))
+static const char *CSV_HEADER =
+  "conn,phase,tcp_connect_ns,tls_handshake_ns,keyconfirm_ns,cpu_ns,"
+  "bytes_in,bytes_out,peak_rss_kb,group,tls_version,cipher,resumed,status";
+
 static int run_bench_net(SSL_CTX *ctx, const Args *a, int is_server) {
-  (void)ctx; (void)a; (void)is_server;
-  fprintf(stderr, "bench-net not implemented yet\n");
-  return 3;
+  long total = (long)a->warmup + (long)a->count;
+  Csv *csv = NULL;
+  if (a->csv) {
+    csv = csv_open(a->csv, CSV_HEADER);
+    if (!csv) { fprintf(stderr, "cannot open csv %s\n", a->csv); return 1; }
+  }
+
+  long ok = 0, err = 0, tmo = 0;
+  int lfd = -1;
+  if (is_server) {
+    lfd = tcp_listen(a->bind, a->port);
+    if (lfd < 0) { fprintf(stderr, "listen %s:%d failed\n", a->bind, a->port); if (csv) csv_close(csv); return 1; }
+    fprintf(stderr, "server bench on %s:%d profile=%s total=%ld\n", a->bind, a->port, a->profile, total);
+  }
+
+  for (long i = 0; i < total; i++) {
+    int phase = (i < a->warmup) ? 0 : 1;
+    ConnResult r;
+    memset(&r, 0, sizeof r);
+    uint64_t tconn = 0;
+    int fd;
+
+    if (is_server) {
+      fd = tcp_accept(lfd, a->timeout_ms > 0 ? a->timeout_ms * 4 : 20000);
+      if (fd < 0) {
+        tmo++;
+        if (csv) csv_row(csv, "%ld,%d,0,0,0,0,0,0,%ld,-,-,-,-,timeout", i, phase, peak_rss_kb());
+        fprintf(stderr, "accept timeout at conn %ld — stopping\n", i);
+        break;
+      }
+    } else {
+      uint64_t t0 = mono_ns();
+      fd = tcp_connect(a->peer, a->port, a->timeout_ms);
+      tconn = mono_ns() - t0;
+      if (fd < 0) {
+        err++;
+        if (csv) csv_row(csv, "%ld,%d,%llu,0,0,0,0,0,%ld,-,-,-,-,connect_err", i, phase, ULL(tconn), peak_rss_kb());
+        continue;
+      }
+    }
+
+    uint64_t cpu0 = cpu_ns();
+    int cr = handle_conn(ctx, fd, is_server, a, &r);
+    uint64_t cpu1 = cpu_ns();
+
+    if (cr == 0 && r.ok) {
+      ok++;
+      if (csv) csv_row(csv, "%ld,%d,%llu,%llu,%llu,%llu,%ld,%ld,%ld,%s,%s,%s,%d,ok",
+                       i, phase, ULL(tconn), ULL(r.handshake_ns), ULL(r.keyconfirm_ns),
+                       ULL(cpu1 - cpu0), r.bytes_in, r.bytes_out, peak_rss_kb(),
+                       r.group, r.version ? r.version : "-", r.cipher ? r.cipher : "-", r.resumed);
+    } else {
+      err++;
+      if (csv) csv_row(csv, "%ld,%d,%llu,0,0,%llu,0,0,%ld,-,-,-,-,err_rc%d",
+                       i, phase, ULL(tconn), ULL(cpu1 - cpu0), peak_rss_kb(), cr);
+    }
+  }
+
+  if (lfd >= 0) close(lfd);
+  if (csv) csv_close(csv);
+
+  fprintf(stderr, "bench %s done: ok=%ld err=%ld timeout=%ld (warmup=%d count=%d)\n",
+          is_server ? "server" : "client", ok, err, tmo, a->warmup, a->count);
+  printf("BENCH_SUMMARY role=%s profile=%s ok=%ld err=%ld timeout=%ld peak_rss_kb=%ld\n",
+         a->role, a->profile, ok, err, tmo, peak_rss_kb());
+
+  return (err == 0 && tmo == 0) ? 0 : 1;
 }

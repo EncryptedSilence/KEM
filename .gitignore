@@ -11,8 +11,6 @@
 /certs/**/private/
 *.key
 !*.pub
-# Raw measurement outputs are large; keep them out of git by default
-/results/raw/
 # Editor / OS noise
 *.o
 *.obj
